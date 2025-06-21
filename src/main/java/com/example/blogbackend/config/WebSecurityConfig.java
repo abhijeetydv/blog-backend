@@ -4,6 +4,7 @@ import com.example.blogbackend.security.jwt.AuthEntryPointJwt;
 import com.example.blogbackend.security.jwt.AuthTokenFilter;
 import com.example.blogbackend.security.services.UserDetailsServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -23,6 +24,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.Arrays;
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
@@ -33,6 +35,10 @@ public class WebSecurityConfig {
 
     @Autowired
     private AuthEntryPointJwt unauthorizedHandler;
+
+    // This will use environment variable in production, or default to localhost:3000 for local development
+    @Value("${cors.allowed-origins:http://localhost:3000}")
+    private String corsAllowedOrigins;
 
     @Bean
     public AuthTokenFilter authenticationJwtTokenFilter() {
@@ -62,7 +68,11 @@ public class WebSecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost:3000"));
+
+        // Parse comma-separated origins from environment variable or use default
+        List<String> origins = Arrays.asList(corsAllowedOrigins.split(","));
+        configuration.setAllowedOrigins(origins);
+
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setAllowCredentials(true);
